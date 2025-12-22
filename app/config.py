@@ -149,7 +149,9 @@ def _init_config_attributes() -> None:
     
     # 日志配置
     Config.LOG_LEVEL = Config.get("LOG_LEVEL", "INFO")
-    Config.LOG_FORMAT = Config.get("LOG_FORMAT", "json")
+    Config.LOG_FORMAT = Config.get("LOG_FORMAT", "file")
+    Config.LOG_PATH = Config.get("LOG_PATH", "./log/server.log")
+    Config.LOG_RETENTION_DAYS = Config.get_int("LOG_RETENTION_DAYS", 30)
     
     # API 配置
     Config.API_PREFIX = Config.get("API_PREFIX", "/api/v1")

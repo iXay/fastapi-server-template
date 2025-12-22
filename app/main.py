@@ -3,6 +3,10 @@ FastAPI 服务器主入口
 """
 from fastapi import FastAPI
 from app.config import Config
+from app.logger import logger
+
+# 初始化日志
+logger.info("Starting FastAPI application...")
 
 # 从配置中读取应用信息
 app = FastAPI(
@@ -16,12 +20,14 @@ app = FastAPI(
 @app.get("/")
 async def root():
     """根路径"""
+    logger.info("Root endpoint accessed")
     return {"message": "Hello, FastAPI!"}
 
 
 @app.get("/health")
 async def health():
     """健康检查端点"""
+    logger.debug("Health check endpoint accessed")
     return {"status": "ok"}
 
 
