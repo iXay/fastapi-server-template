@@ -1,145 +1,66 @@
-# FastAPI Server Template
+## FastAPI Server Template
 
-一个简单、易用的 FastAPI 服务器项目模板。
+一个开箱即用的 FastAPI 服务端模板，默认集成：
 
-## 特性
+- `uv` 依赖管理与运行
+- `.env` 配置加载（支持 local / production）
+- 结构化日志（控制台 + 按天滚动文件）
+- 健康检查接口
 
-- 🚀 基于 FastAPI 构建
-- 📦 使用 uv 管理依赖
-- 🎯 结构简单，易于理解
-- 📖 新手友好，学习路径短
-- ⚙️ 多环境配置管理，支持公共配置和环境特定配置
+## 目录结构
+
+- `main/`: 实际服务代码与依赖定义
+  - `main/src/app.py`: FastAPI 应用入口
+  - `main/src/config.py`: 配置读取（从 `main/.env` 加载）
+  - `main/src/logger.py`: 日志配置与 `logger` 实例
+  - `main/start.sh`: 启动脚本（选择环境并启动 `uvicorn`）
+
+## 环境要求
+
+- Python `>= 3.11.14`
+- 已安装 `uv`
 
 ## 快速开始
 
-### 1. 安装 uv
+在项目根目录执行：
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-### 2. 安装依赖
-
-```bash
+cd main
 uv sync
+./start.sh --env local
 ```
 
-### 3. 配置环境
+默认监听 `0.0.0.0:8080`。
 
-复制 `.env.example` 文件为 `.env`，并根据需要修改配置：
+## 环境与配置
+
+启动脚本会根据 `--env` 选择配置文件并复制为 `main/.env`：
+
+- `--env local`：使用 `main/.env.local`（默认加 `--reload`）
+- 其他值：使用 `main/.env.production`
+
+### 常用配置项
+
+这些配置由 `main/src/config.py` 读取（可在 `.env.*` 中设置）：
+
+- **应用信息**: `APP_NAME`, `APP_VERSION`, `APP_DESCRIPTION`
+- **服务调试**: `DEBUG`
+- **日志**: `LOG_LEVEL`, `LOG_PATH`, `LOG_RETENTION_DAYS`
+- **API**: `API_PREFIX`（默认 `/api/v1`）
+
+## 接口
+
+- `GET /` 或 `GET /health`：健康检查，返回 `{"status":"ok"}`
+
+## 添加业务路由
+
+在 `main/src/app.py` 的 `business_routers` 列表中追加你的 router，然后服务会自动以 `Config.API_PREFIX` 作为统一前缀挂载。
+
+## 开发辅助
+
+格式化代码：
 
 ```bash
-cp .env.example .env
+cd main
+uv run black .
 ```
-
-然后编辑 `.env` 文件，配置应用所需的参数。配置文件会从 `.env` 文件中读取，环境变量不会覆盖文件配置。
-
-### 4. 运行服务器
-
-```bash
-uv run uvicorn app.main:app --reload
-```
-
-服务器将在 `http://localhost:8000` 启动。
-
-### 5. 访问 API
-
-- 根路径: http://localhost:8000/
-- 健康检查: http://localhost:8000/health
-- 配置信息: http://localhost:8000/config
-- API 文档: http://localhost:8000/docs
-- 替代文档: http://localhost:8000/redoc
-
-## 项目结构
-
-```
-fastapi-server-template/
-├── app/
-│   ├── main.py          # 主入口文件
-│   └── config.py        # 配置管理模块
-├── .env                 # 配置文件（需要从 .env.example 复制）
-├── .env.example         # 配置文件示例
-├── pyproject.toml       # 项目配置和依赖
-└── README.md           # 项目说明
-```
-
-## 配置系统使用
-
-### 基本用法
-
-```python
-from app.config import Config
-
-# 方式1：使用显式定义的属性（推荐，简单直接）
-host = Config.HOST
-port = Config.PORT
-debug = Config.DEBUG
-app_name = Config.APP_NAME
-
-# 方式2：使用 get 方法（适用于未显式定义的配置项）
-custom_value = Config.get("CUSTOM_KEY", "default_value")
-custom_int = Config.get_int("CUSTOM_INT", 100)
-```
-
-### 添加新的配置属性
-
-如果需要在代码中使用 `Config.XXX` 的方式访问配置，需要在 `app/config.py` 的 `_init_config_attributes()` 函数中显式定义：
-
-```python
-def _init_config_attributes() -> None:
-    """初始化 Config 类的属性"""
-    # 现有配置...
-    
-    # 添加新配置
-    Config.DATABASE_URL = Config.get("DATABASE_URL", "postgresql://localhost/mydb")
-    Config.REDIS_HOST = Config.get("REDIS_HOST", "localhost")
-    Config.REDIS_PORT = Config.get_int("REDIS_PORT", 6379)
-```
-
-### 类型转换方法
-
-```python
-# 获取字符串（默认值可选）
-value = Config.get("KEY", "default")
-
-# 获取布尔值
-debug = Config.get_bool("DEBUG", False)
-
-# 获取整数
-port = Config.get_int("PORT", 8000)
-
-# 获取浮点数
-timeout = Config.get_float("TIMEOUT", 30.0)
-```
-
-### 重新加载配置
-
-```python
-# 在运行时重新加载配置（例如配置热更新）
-Config.reload()
-```
-
-## 开发
-
-### 添加新依赖
-
-```bash
-uv add <package-name>
-```
-
-### 运行代码格式化
-
-```bash
-uv run ruff format .
-```
-
-### 运行代码检查
-
-```bash
-uv run ruff check .
-```
-
-## 许可证
-
-MIT
-
